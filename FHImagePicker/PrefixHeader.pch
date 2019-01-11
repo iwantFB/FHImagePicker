@@ -1,0 +1,14 @@
+//
+//  PrefixHeader.pch
+//  FHImagePicker
+//
+//  Created by 胡斐 on 2019/1/11.
+//  Copyright © 2019年 jackson. All rights reserved.
+//
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+#import "Macro.h"
+
+#endif /* PrefixHeader_pch */
