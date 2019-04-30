@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import "HFCameraViewController.h"
 
 @interface ViewController ()
 
@@ -19,5 +20,9 @@
     // Do any additional setup after loading the view, typically from a nib.
 }
 
+- (IBAction)showTheCamera {
+    HFCameraViewController *cameraVC = [[HFCameraViewController alloc] init];
+    [self.navigationController pushViewController:cameraVC animated:YES];
+}
 
 @end
