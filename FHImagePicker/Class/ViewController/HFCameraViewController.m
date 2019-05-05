@@ -9,16 +9,22 @@
 #import "HFCameraViewController.h"
 #import "HFCameraSetting.h"
 #import "HFCameraPreview.h"
+#import "HFCameraBottomBar.h"
 
-@interface HFCameraViewController ()
+@interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate>
 
 @property (nonatomic, strong) HFCameraPreview *preview;
+@property (nonatomic, strong) HFCameraBottomBar *bottomBar;
 @property (nonatomic, strong) HFCameraSetting *cameraSetting;
 
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) AVCaptureDevice *device;
-@property (nonatomic, strong) AVCaptureDeviceInput *cameraDeviceInput;
+@property (nonatomic, strong) AVCaptureDeviceInput *backCameraDeviceInput;
+@property (nonatomic, strong) AVCaptureDeviceInput *frontCameraDeviceInput;
 @property (nonatomic, strong) AVCaptureVideoDataOutput *cameraOutput;
+@property (nonatomic, strong) AVCapturePhotoOutput *capturePhotoOutput;
+
+@property (nonatomic, strong) dispatch_queue_t videoQueue;
 @end
 
 @implementation HFCameraViewController
@@ -49,17 +55,42 @@
 - (void)_configSubView
 {
     self.view.backgroundColor = [UIColor whiteColor];
+    self.navigationController.navigationBar.translucent = NO;
     
     self.preview.session = self.session;
-    self.preview.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    self.preview.frame = self.cameraSetting.cameraRect;
+    self.preview.videoGravity = self.cameraSetting.videoGravity;
     [self.view addSubview:_preview];
+    
+    [self.view addSubview:self.bottomBar];
+    self.bottomBar.frame = self.cameraSetting.bottomBarRect;
 }
 
+//根据配置信息设置相机
 - (void)_setupCamera
 {
-    [self.session beginConfiguration];
+    AVCaptureDeviceInput *deviceInput;
+    //除非指定需要前置相机，否则默认使用后置相机
+    if(self.cameraSetting.cameraDevice == HFCameraDeviceFront){
+        deviceInput = self.frontCameraDeviceInput;
+    }else{
+        deviceInput = self.backCameraDeviceInput;
+    }
     
-    [self.session commitConfiguration];
+    if([self.session canAddInput:deviceInput]){
+        [self.session addInput:deviceInput];
+    }
+    
+    [self.cameraOutput setSampleBufferDelegate:self queue:self.videoQueue];
+    if([self.session canAddOutput:self.cameraOutput]){
+        [self.session addOutput:self.cameraOutput];
+    }
+}
+
+#pragma mark- AVCaptureDataOutputSampleBufferDelegate
+- (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
+{
+    
 }
 
 #pragma mark- setter/getter
@@ -79,6 +110,14 @@
     return _preview;
 }
 
+-(HFCameraBottomBar *)bottomBar
+{
+    if(!_bottomBar){
+        _bottomBar = [[HFCameraBottomBar alloc] init];
+    }
+    return _bottomBar;
+}
+
 - (HFCameraSetting *)cameraSetting
 {
     if(!_cameraSetting){
@@ -86,5 +125,51 @@
     }
     return _cameraSetting;
 }
+
+- (AVCaptureDeviceInput *)backCameraDeviceInput
+{
+    if(!_backCameraDeviceInput){
+        NSError *error;
+        AVCaptureDevice *backDevice = [AVCaptureDevice defaultDeviceWithDeviceType:AVCaptureDeviceTypeBuiltInWideAngleCamera mediaType:AVMediaTypeVideo position:AVCaptureDevicePositionBack];
+        _backCameraDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:backDevice error:&error];
+    }
+    return _backCameraDeviceInput;
+}
+
+- (AVCaptureDeviceInput *)frontCameraDeviceInput
+{
+    if(!_frontCameraDeviceInput){
+        NSError *error;
+        AVCaptureDevice *frontDevice = [AVCaptureDevice defaultDeviceWithDeviceType:AVCaptureDeviceTypeBuiltInWideAngleCamera mediaType:AVMediaTypeVideo position:AVCaptureDevicePositionFront];
+        _frontCameraDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:frontDevice error:&error];
+    }
+    return _frontCameraDeviceInput;
+}
+
+- (AVCaptureVideoDataOutput *)cameraOutput
+{
+    if(!_cameraOutput){
+        _cameraOutput = [[AVCaptureVideoDataOutput alloc] init];
+        _cameraOutput.alwaysDiscardsLateVideoFrames = YES;
+    }
+    return _cameraOutput;
+}
+
+- (AVCapturePhotoOutput *)capturePhotoOutput
+{
+    if(!_capturePhotoOutput){
+        _capturePhotoOutput = [AVCapturePhotoOutput new];
+    }
+    return _capturePhotoOutput;
+}
+
+-(dispatch_queue_t)videoQueue
+{
+    if(!_videoQueue){
+        _videoQueue = dispatch_queue_create("HFCameraDataOutputQueue", DISPATCH_QUEUE_SERIAL);
+    }
+    return _videoQueue;
+}
+
 
 @end

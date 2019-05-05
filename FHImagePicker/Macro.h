@@ -14,9 +14,9 @@
 
 #define iPHONE_X ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? ((NSInteger)(([[UIScreen mainScreen] currentMode].size.height/[[UIScreen mainScreen] currentMode].size.width)*100) == 216) : NO)
 #define AdjustsScrollViewInsetNever(controller,view) if(@available(iOS 11.0, *)) {view.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;} else if([controller isKindOfClass:[UIViewController class]]) {controller.automaticallyAdjustsScrollViewInsets = false;}
-#define  StatusBarHeight            (kIs_iPhoneX ? 44.f : 20.f)
-#define  TabbarSafeBottomMargin     (kIs_iPhoneX ? 34.f : 0.f)
-#define  TabbarHeight               (kIs_iPhoneX ? (49.f + HT_TabbarSafeBottomMargin ) : 49.f)
-#define  NavigationBar_Height       (44.f + HT_StatusBarHeight)
+#define  StatusBarHeight            (iPHONE_X ? 44.f : 20.f)
+#define  TabbarSafeBottomMargin     (iPHONE_X ? 34.f : 0.f)
+#define  TabbarHeight               (iPHONE_X ? (49.f + HT_TabbarSafeBottomMargin ) : 49.f)
+#define  NavigationBar_Height       (44.f + StatusBarHeight)
 
 #endif /* Macro_h */

@@ -20,6 +20,7 @@
 		7A7685722277FC2F00B2BDD4 /* HFCameraSetting.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A7685712277FC2F00B2BDD4 /* HFCameraSetting.m */; };
 		7A76857522780F3F00B2BDD4 /* HFCameraPreview.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A76857422780F3F00B2BDD4 /* HFCameraPreview.m */; };
 		7A7685792278179800B2BDD4 /* HFCameraViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A7685782278179800B2BDD4 /* HFCameraViewController.m */; };
+		7A76857C227E92F300B2BDD4 /* HFCameraBottomBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A76857B227E92F300B2BDD4 /* HFCameraBottomBar.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,8 @@
 		7A76857422780F3F00B2BDD4 /* HFCameraPreview.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFCameraPreview.m; sourceTree = "<group>"; };
 		7A7685772278179800B2BDD4 /* HFCameraViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HFCameraViewController.h; sourceTree = "<group>"; };
 		7A7685782278179800B2BDD4 /* HFCameraViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFCameraViewController.m; sourceTree = "<group>"; };
+		7A76857A227E92F300B2BDD4 /* HFCameraBottomBar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HFCameraBottomBar.h; sourceTree = "<group>"; };
+		7A76857B227E92F300B2BDD4 /* HFCameraBottomBar.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFCameraBottomBar.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -138,6 +141,8 @@
 			children = (
 				7A76857322780F3F00B2BDD4 /* HFCameraPreview.h */,
 				7A76857422780F3F00B2BDD4 /* HFCameraPreview.m */,
+				7A76857A227E92F300B2BDD4 /* HFCameraBottomBar.h */,
+				7A76857B227E92F300B2BDD4 /* HFCameraBottomBar.m */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -217,6 +222,7 @@
 				7A2B44D721E8859D0065EE1E /* HTImagePickerViewController.m in Sources */,
 				7A2B44C421E8852D0065EE1E /* ViewController.m in Sources */,
 				7A2B44CF21E885360065EE1E /* main.m in Sources */,
+				7A76857C227E92F300B2BDD4 /* HFCameraBottomBar.m in Sources */,
 				7A7685792278179800B2BDD4 /* HFCameraViewController.m in Sources */,
 				7A2B44DD21E88BC00065EE1E /* HFAlbumListViewController.m in Sources */,
 				7A2B44C121E8852D0065EE1E /* AppDelegate.m in Sources */,
@@ -368,6 +374,7 @@
 				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = NO;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/FHImagePicker/PrefixHeader.pch";
 				INFOPLIST_FILE = FHImagePicker/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -387,6 +394,7 @@
 				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = NO;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/FHImagePicker/PrefixHeader.pch";
 				INFOPLIST_FILE = FHImagePicker/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

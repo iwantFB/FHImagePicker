@@ -7,6 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreGraphics/CoreGraphics.h>
+#import <UIKit/UIKit.h>
 
 typedef NS_ENUM(NSInteger, HFCameraDevice) {
     HFCameraDeviceFront = 0,
@@ -18,12 +20,23 @@ typedef NS_ENUM(NSInteger, HFCameraMode) {
     HFCameraModeVideo
 };
 
+typedef NS_ENUM(NSInteger, HFCameraVideoGravity) {
+    HFCameraVideoGravityAspect,
+    HFCameraVideoGravityAspectFill,
+    HFCameraVideoGravityResize
+};
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface HFCameraSetting : NSObject
 
 @property (nonatomic, assign) HFCameraDevice cameraDevice;
 @property (nonatomic, assign) HFCameraMode cameraMode;
+
+@property (nonatomic, assign) CGRect cameraRect;
+@property (nonatomic, assign) CGRect bottomBarRect;
+@property(assign) HFCameraVideoGravity cameraGravity;
+@property (copy, readonly) NSString *videoGravity;
 
 + (instancetype)defalutConfig;
 
