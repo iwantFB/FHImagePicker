@@ -11,7 +11,7 @@
 #import "HFCameraPreview.h"
 #import "HFCameraBottomBar.h"
 
-@interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate>
+@interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,HFCameraBottomBarDelegate,AVCapturePhotoCaptureDelegate>
 
 @property (nonatomic, strong) HFCameraPreview *preview;
 @property (nonatomic, strong) HFCameraBottomBar *bottomBar;
@@ -85,12 +85,40 @@
     if([self.session canAddOutput:self.cameraOutput]){
         [self.session addOutput:self.cameraOutput];
     }
+    
+    if([self.session canAddOutput:self.capturePhotoOutput]){
+        [self.session addOutput:self.capturePhotoOutput];
+    }
 }
 
 #pragma mark- AVCaptureDataOutputSampleBufferDelegate
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
     
+}
+
+#pragma mark- AVCapturePhotoCaptureDelegate
+- (void)captureOutput:(AVCapturePhotoOutput *)output didFinishProcessingPhotoSampleBuffer:(nullable CMSampleBufferRef)photoSampleBuffer previewPhotoSampleBuffer:(nullable CMSampleBufferRef)previewPhotoSampleBuffer resolvedSettings:(AVCaptureResolvedPhotoSettings *)resolvedSettings bracketSettings:(nullable AVCaptureBracketedStillImageSettings *)bracketSettings error:(nullable NSError *)error
+{
+    if(error){
+        NSLog(@"拍照出问题%@",error.localizedDescription);
+        return;
+    }
+    
+    NSData *imageData = [AVCapturePhotoOutput JPEGPhotoDataRepresentationForJPEGSampleBuffer:photoSampleBuffer previewPhotoSampleBuffer:previewPhotoSampleBuffer];
+    UIImageWriteToSavedPhotosAlbum([UIImage imageWithData:imageData], nil, nil, nil);
+}
+
+#pragma mark- HFCameraBottomBarDelegate
+- (void)cameraBottomBarShouldCapture:(HFCameraBottomBar *)bottomBar
+{
+//    NSDictionary *seetingDic = @{
+//                                 kCVPixelBufferWidthKey : @"160",
+//                                 kCVPixelBufferHeightKey : @"160"
+//
+//                                 };
+    AVCapturePhotoSettings *setting = [AVCapturePhotoSettings photoSettings];
+    [self.capturePhotoOutput capturePhotoWithSettings:setting delegate:self];
 }
 
 #pragma mark- setter/getter
@@ -114,6 +142,7 @@
 {
     if(!_bottomBar){
         _bottomBar = [[HFCameraBottomBar alloc] init];
+        _bottomBar.delegate = self;
     }
     return _bottomBar;
 }

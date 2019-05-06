@@ -8,9 +8,19 @@
 
 #import <UIKit/UIKit.h>
 
+@class HFCameraBottomBar;
+
 NS_ASSUME_NONNULL_BEGIN
 
+@protocol HFCameraBottomBarDelegate <NSObject>
+
+- (void)cameraBottomBarShouldCapture:(HFCameraBottomBar *)bottomBar;
+
+@end
+
 @interface HFCameraBottomBar : UIView
+
+@property (weak, nonatomic) id<HFCameraBottomBarDelegate> delegate;
 
 @end
 

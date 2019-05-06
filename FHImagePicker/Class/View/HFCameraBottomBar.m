@@ -8,6 +8,12 @@
 
 #import "HFCameraBottomBar.h"
 
+@interface HFCameraBottomBar()
+
+@property (nonatomic, strong) UIButton *takePhotoBtn;
+
+@end
+
 @implementation HFCameraBottomBar
 
 - (instancetype)initWithFrame:(CGRect )frame
@@ -19,8 +25,16 @@
 }
 
 - (instancetype)init
-{                                                                           
+{
     return [self initWithFrame:CGRectZero];
+}
+
+#pragma mark- action
+- (void)_takePhotoBtnAction
+{
+    if(_delegate && [_delegate respondsToSelector:@selector(cameraBottomBarShouldCapture:)]){
+        [_delegate cameraBottomBarShouldCapture:self];
+    }
 }
 
 #pragma mark- private method
@@ -28,6 +42,20 @@
 {
     self.alpha = 0.5;
     self.backgroundColor = [UIColor blackColor];
+    
+    [self addSubview:self.takePhotoBtn];
+    _takePhotoBtn.frame = CGRectMake(0, 0, 60, 60);
+}
+
+#pragma mark- setter/getter
+- (UIButton *)takePhotoBtn
+{
+    if(!_takePhotoBtn){
+        _takePhotoBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_takePhotoBtn setTitle:@"拍照" forState:UIControlStateNormal];
+        [_takePhotoBtn addTarget:self action:@selector(_takePhotoBtnAction) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _takePhotoBtn;
 }
 
 @end
