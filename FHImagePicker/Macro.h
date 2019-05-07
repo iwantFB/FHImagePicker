@@ -19,4 +19,6 @@
 #define  TabbarHeight               (iPHONE_X ? (49.f + HT_TabbarSafeBottomMargin ) : 49.f)
 #define  NavigationBar_Height       (44.f + StatusBarHeight)
 
+#define WS(weakSelf)  __weak __typeof(&*self)weakSelf = self;
+
 #endif /* Macro_h */

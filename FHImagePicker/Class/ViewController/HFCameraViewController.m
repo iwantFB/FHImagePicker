@@ -7,9 +7,13 @@
 //
 
 #import "HFCameraViewController.h"
-#import "HFCameraSetting.h"
+
 #import "HFCameraPreview.h"
 #import "HFCameraBottomBar.h"
+
+#import "HFCameraSetting.h"
+#import "HFDeviceOrientationMonitor.h"
+
 
 @interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,HFCameraBottomBarDelegate,AVCapturePhotoCaptureDelegate>
 
@@ -25,6 +29,8 @@
 @property (nonatomic, strong) AVCapturePhotoOutput *capturePhotoOutput;
 
 @property (nonatomic, strong) dispatch_queue_t videoQueue;
+
+@property (nonatomic, strong) HFDeviceOrientationMonitor *orientationMonitor;
 @end
 
 @implementation HFCameraViewController
@@ -32,7 +38,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    
+    [self _initConfig];
     [self _configSubView];
     [self _setupCamera];
 }
@@ -41,6 +47,26 @@
 {
     [super viewWillAppear:animated];
     
+    WS(weakSelf)
+    [self.orientationMonitor beginMonitorWithChange:^(HFDeviceOrientation orientation) {
+        AVCaptureConnection *connection = [weakSelf.capturePhotoOutput connectionWithMediaType:AVMediaTypeVideo];
+        if([connection isVideoOrientationSupported]){
+            AVCaptureVideoOrientation videoOrientation = AVCaptureVideoOrientationPortrait;
+            switch (orientation) {
+                case HFDeviceOrientationLandscapeLeft:
+                    videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+                    break;
+                case HFDeviceOrientationLandscapeRight:
+                    videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+                    break;
+                    case HFDeviceOrientationPortrait:
+                    videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
+                default:
+                    break;
+            }
+            [connection setVideoOrientation:videoOrientation];
+        }
+    }];
     [self.session startRunning];
 }
 
@@ -48,10 +74,16 @@
 {
     [super viewDidDisappear:animated];
     
+    [self.orientationMonitor endMonitor];
     [self.session stopRunning];
 }
 
 #pragma mark- private method
+- (void)_initConfig
+{
+    
+}
+
 - (void)_configSubView
 {
     self.view.backgroundColor = [UIColor whiteColor];
@@ -112,11 +144,6 @@
 #pragma mark- HFCameraBottomBarDelegate
 - (void)cameraBottomBarShouldCapture:(HFCameraBottomBar *)bottomBar
 {
-//    NSDictionary *seetingDic = @{
-//                                 kCVPixelBufferWidthKey : @"160",
-//                                 kCVPixelBufferHeightKey : @"160"
-//
-//                                 };
     AVCapturePhotoSettings *setting = [AVCapturePhotoSettings photoSettings];
     [self.capturePhotoOutput capturePhotoWithSettings:setting delegate:self];
 }
@@ -198,6 +225,15 @@
         _videoQueue = dispatch_queue_create("HFCameraDataOutputQueue", DISPATCH_QUEUE_SERIAL);
     }
     return _videoQueue;
+}
+
+-(HFDeviceOrientationMonitor *)orientationMonitor
+{
+    if(!_orientationMonitor){
+        _orientationMonitor = [[HFDeviceOrientationMonitor alloc] init];
+        _orientationMonitor.updateInterval = 2.0;
+    }
+    return _orientationMonitor;
 }
 
 
