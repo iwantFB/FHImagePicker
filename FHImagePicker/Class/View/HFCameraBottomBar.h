@@ -22,6 +22,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (weak, nonatomic) id<HFCameraBottomBarDelegate> delegate;
 
+///degress == 只有0  M_PI_2  M_PI
+- (void)rotateUIWithDegress:(CGFloat )degress
+                  animation:(BOOL)animation;
+
 @end
 
 NS_ASSUME_NONNULL_END

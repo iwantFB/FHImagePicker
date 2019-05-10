@@ -31,6 +31,7 @@
 @property (nonatomic, strong) dispatch_queue_t videoQueue;
 
 @property (nonatomic, strong) HFDeviceOrientationMonitor *orientationMonitor;
+@property (nonatomic, assign) HFDeviceOrientation deviceOrient;
 @end
 
 @implementation HFCameraViewController
@@ -49,6 +50,10 @@
     
     WS(weakSelf)
     [self.orientationMonitor beginMonitorWithChange:^(HFDeviceOrientation orientation) {
+        //如果设备朝向和检测到的朝向一致的时候无需操作
+        if(weakSelf.deviceOrient == orientation)return;
+        [weakSelf rotateDeviceUIWithTargetOrient:orientation];
+        weakSelf.deviceOrient = orientation;
         AVCaptureConnection *connection = [weakSelf.capturePhotoOutput connectionWithMediaType:AVMediaTypeVideo];
         if([connection isVideoOrientationSupported]){
             AVCaptureVideoOrientation videoOrientation = AVCaptureVideoOrientationPortrait;
@@ -81,8 +86,7 @@
 #pragma mark- private method
 - (void)_initConfig
 {
-    
-    
+    _deviceOrient = HFDeviceOrientationPortrait;
 }
 
 - (void)_configSubView
@@ -122,6 +126,20 @@
     if([self.session canAddOutput:self.capturePhotoOutput]){
         [self.session addOutput:self.capturePhotoOutput];
     }
+}
+
+- (void)rotateDeviceUIWithTargetOrient:(HFDeviceOrientation)orientation
+{
+    CGFloat degress = 0;
+    if(   (orientation == HFDeviceOrientationPortrait && _deviceOrient == HFDeviceOrientationLandscapeLeft)
+       || (orientation == HFDeviceOrientationLandscapeLeft && _deviceOrient == HFDeviceOrientationPortraitUpsideDown)
+       || (orientation == HFDeviceOrientationPortraitUpsideDown && _deviceOrient == HFDeviceOrientationLandscapeRight)
+       || (orientation == HFDeviceOrientationLandscapeRight && _deviceOrient == HFDeviceOrientationPortrait)){
+        degress = - M_PI_2;
+    }else{
+        degress = M_PI_2;
+    }
+    [_bottomBar rotateUIWithDegress:degress animation:YES];
 }
 
 #pragma mark- AVCaptureDataOutputSampleBufferDelegate

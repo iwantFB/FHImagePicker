@@ -37,6 +37,17 @@
     }
 }
 
+#pragma mark- public method
+- (void)rotateUIWithDegress:(CGFloat )degress
+                  animation:(BOOL)animation
+{
+    NSTimeInterval animationDuration = animation ? 1.0 : 0.0;
+    self.takePhotoBtn.transform = CGAffineTransformIdentity;
+    [UIView animateWithDuration:animationDuration animations:^{
+        self.takePhotoBtn.transform = CGAffineTransformRotate(self.takePhotoBtn.transform, degress);
+    }];
+}
+
 #pragma mark- private method
 - (void)_configSubView
 {
