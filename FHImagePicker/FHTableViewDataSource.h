@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-typedef void(^ConfigBlock)(UITableViewCell *cell, id item);
+typedef void(^ConfigBlock)(UITableViewCell * _Nonnull cell, id _Nonnull item);
 
 NS_ASSUME_NONNULL_BEGIN
 

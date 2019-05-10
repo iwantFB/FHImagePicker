@@ -11,10 +11,10 @@
 
 @protocol HTImagePickerViewController <NSObject>
 
-- (void)imagePickerController:(HTImagePickerViewController *)picker
-didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info;
+- (void)imagePickerController:(HTImagePickerViewController *_Nonnull)picker
+didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *_Nonnull)info;
 
-- (void)imagePickerControllerDidCancel:(HTImagePickerViewController *)picker;
+- (void)imagePickerControllerDidCancel:(HTImagePickerViewController *_Nonnull)picker;
 
 @end
 
