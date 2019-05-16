@@ -13,7 +13,10 @@ typedef NS_ENUM(NSInteger, HFDeviceOrientation) {
     HFDeviceOrientationPortrait = 1,
     HFDeviceOrientationPortraitUpsideDown,
     HFDeviceOrientationLandscapeRight,
-    HFDeviceOrientationLandscapeLeft
+    HFDeviceOrientationLandscapeLeft,
+    HFDeviceOrientationFaceUp,
+    HFDeviceOrientationFaceDown,
+    HFDeviceOrientationUnknown,
 };
 
 typedef void(^DeviceOrientationChange)(HFDeviceOrientation orientation);

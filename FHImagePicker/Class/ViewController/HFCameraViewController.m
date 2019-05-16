@@ -51,7 +51,8 @@
     WS(weakSelf)
     [self.orientationMonitor beginMonitorWithChange:^(HFDeviceOrientation orientation) {
         //如果设备朝向和检测到的朝向一致的时候无需操作
-        if(weakSelf.deviceOrient == orientation)return;
+        if(weakSelf.deviceOrient == orientation || orientation > 4)return;
+        NSLog(@"朝向%ld",orientation);
         [weakSelf rotateDeviceUIWithTargetOrient:orientation];
         weakSelf.deviceOrient = orientation;
         AVCaptureConnection *connection = [weakSelf.capturePhotoOutput connectionWithMediaType:AVMediaTypeVideo];
@@ -64,9 +65,11 @@
                 case HFDeviceOrientationLandscapeRight:
                     videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
                     break;
-                    case HFDeviceOrientationPortrait:
+                    case HFDeviceOrientationPortraitUpsideDown:
                     videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
+                    break;
                 default:
+                    videoOrientation = AVCaptureVideoOrientationPortrait;
                     break;
             }
             [connection setVideoOrientation:videoOrientation];
@@ -136,6 +139,13 @@
        || (orientation == HFDeviceOrientationPortraitUpsideDown && _deviceOrient == HFDeviceOrientationLandscapeRight)
        || (orientation == HFDeviceOrientationLandscapeRight && _deviceOrient == HFDeviceOrientationPortrait)){
         degress = - M_PI_2;
+    }else if(
+             (orientation == HFDeviceOrientationPortrait && _deviceOrient == HFDeviceOrientationPortraitUpsideDown)
+             || (orientation == HFDeviceOrientationLandscapeLeft && _deviceOrient == HFDeviceOrientationLandscapeRight)
+             || (orientation == HFDeviceOrientationPortraitUpsideDown && _deviceOrient == HFDeviceOrientationPortrait)
+             || (orientation == HFDeviceOrientationLandscapeRight && _deviceOrient == HFDeviceOrientationLandscapeLeft)
+             ){
+        degress = M_PI;
     }else{
         degress = M_PI_2;
     }
@@ -250,7 +260,6 @@
 {
     if(!_orientationMonitor){
         _orientationMonitor = [[HFDeviceOrientationMonitor alloc] init];
-        _orientationMonitor.updateInterval = 2.0;
     }
     return _orientationMonitor;
 }
