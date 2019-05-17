@@ -48,33 +48,40 @@
 {
     double x = motion.acceleration.x;
     double y = motion.acceleration.y;
+    double z = motion.acceleration.z;
+    
+    
     
     HFDeviceOrientation deviceOrientation;
     
-    if ((fabs(y) + 0.1f) >= fabs(x))
-    {
-        if (y >= 0.1f)
+    if(fabs(z) + 0.1f >= 1.0){
+        if(z > 0){
+            deviceOrientation = HFDeviceOrientationFaceDown;
+        }else{
+            deviceOrientation = HFDeviceOrientationFaceUp;
+        }
+    }else{
+        if ((fabs(y) + 0.1f) >= fabs(x))
         {
-            deviceOrientation = HFDeviceOrientationPortraitUpsideDown;
+            if (y > 0.0f)
+            {
+                deviceOrientation = HFDeviceOrientationPortraitUpsideDown;
+            }
+            else
+            {
+                deviceOrientation = HFDeviceOrientationPortrait;
+            }
         }
         else
         {
-            deviceOrientation = HFDeviceOrientationPortrait;
-        }
-    }
-    else
-    {
-        if (x >= 0.1f)
-        {
-            deviceOrientation = HFDeviceOrientationLandscapeRight;
-        }
-        else if (x <= 0.1f)
-        {
-            deviceOrientation = HFDeviceOrientationLandscapeLeft;
-        }
-        else
-        {
-            deviceOrientation = HFDeviceOrientationPortrait;
+            if (x > 0.0f)
+            {
+                deviceOrientation = HFDeviceOrientationLandscapeRight;
+            }
+            else 
+            {
+                deviceOrientation = HFDeviceOrientationLandscapeLeft;
+            }
         }
     }
     

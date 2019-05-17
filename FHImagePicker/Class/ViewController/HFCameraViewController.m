@@ -15,7 +15,7 @@
 #import "HFDeviceOrientationMonitor.h"
 
 
-@interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,HFCameraBottomBarDelegate,AVCapturePhotoCaptureDelegate>
+@interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,HFCameraBottomBarDelegate,AVCapturePhotoCaptureDelegate,HFCameraBottomBarDelegate>
 
 @property (nonatomic, strong) HFCameraPreview *preview;
 @property (nonatomic, strong) HFCameraBottomBar *bottomBar;
@@ -32,6 +32,8 @@
 
 @property (nonatomic, strong) HFDeviceOrientationMonitor *orientationMonitor;
 @property (nonatomic, assign) HFDeviceOrientation deviceOrient;
+///应该中断一下，用在旋转摄像头和其他暂时没有考虑到的情况，不写入照片中
+@property (nonatomic, assign) BOOL shouldInterrupt;
 @end
 
 @implementation HFCameraViewController
@@ -51,7 +53,8 @@
     WS(weakSelf)
     [self.orientationMonitor beginMonitorWithChange:^(HFDeviceOrientation orientation) {
         //如果设备朝向和检测到的朝向一致的时候无需操作
-        if(weakSelf.deviceOrient == orientation)return;
+        if(weakSelf.deviceOrient == orientation || orientation > 4)return;
+        NSLog(@"朝向%ld",orientation);
         [weakSelf rotateDeviceUIWithTargetOrient:orientation];
         weakSelf.deviceOrient = orientation;
         AVCaptureConnection *connection = [weakSelf.capturePhotoOutput connectionWithMediaType:AVMediaTypeVideo];
@@ -64,9 +67,11 @@
                 case HFDeviceOrientationLandscapeRight:
                     videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
                     break;
-                    case HFDeviceOrientationPortrait:
+                    case HFDeviceOrientationPortraitUpsideDown:
                     videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
+                    break;
                 default:
+                    videoOrientation = AVCaptureVideoOrientationPortrait;
                     break;
             }
             [connection setVideoOrientation:videoOrientation];
@@ -136,6 +141,13 @@
        || (orientation == HFDeviceOrientationPortraitUpsideDown && _deviceOrient == HFDeviceOrientationLandscapeRight)
        || (orientation == HFDeviceOrientationLandscapeRight && _deviceOrient == HFDeviceOrientationPortrait)){
         degress = - M_PI_2;
+    }else if(
+             (orientation == HFDeviceOrientationPortrait && _deviceOrient == HFDeviceOrientationPortraitUpsideDown)
+             || (orientation == HFDeviceOrientationLandscapeLeft && _deviceOrient == HFDeviceOrientationLandscapeRight)
+             || (orientation == HFDeviceOrientationPortraitUpsideDown && _deviceOrient == HFDeviceOrientationPortrait)
+             || (orientation == HFDeviceOrientationLandscapeRight && _deviceOrient == HFDeviceOrientationLandscapeLeft)
+             ){
+        degress = M_PI;
     }else{
         degress = M_PI_2;
     }
@@ -156,8 +168,20 @@
         return;
     }
     
+#warning should crop image to the size you want
     NSData *imageData = [AVCapturePhotoOutput JPEGPhotoDataRepresentationForJPEGSampleBuffer:photoSampleBuffer previewPhotoSampleBuffer:previewPhotoSampleBuffer];
     UIImageWriteToSavedPhotosAlbum([UIImage imageWithData:imageData], nil, nil, nil);
+}
+
+#pragma mark- HFCameraBottomBarDelegate
+- (void)cameraBottomBarShouldStartRecord:(HFCameraBottomBar *)bottomBar
+{
+    //每次开始的时候都需要先创建一个新的assetwrite
+}
+
+- (void)cameraBottomBarShouldEndRecord:(HFCameraBottomBar *)bottomBar
+{
+    
 }
 
 #pragma mark- HFCameraBottomBarDelegate
@@ -250,7 +274,6 @@
 {
     if(!_orientationMonitor){
         _orientationMonitor = [[HFDeviceOrientationMonitor alloc] init];
-        _orientationMonitor.updateInterval = 2.0;
     }
     return _orientationMonitor;
 }

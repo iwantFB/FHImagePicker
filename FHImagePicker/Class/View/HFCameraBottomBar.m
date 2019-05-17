@@ -7,10 +7,11 @@
 //
 
 #import "HFCameraBottomBar.h"
+#import "HFTakePhotoButton.h"
 
-@interface HFCameraBottomBar()
+@interface HFCameraBottomBar()<HFTakePhotoButtonDelegate>
 
-@property (nonatomic, strong) UIButton *takePhotoBtn;
+@property (nonatomic, strong) HFTakePhotoButton *takePhotoBtn;
 
 @end
 
@@ -30,23 +31,39 @@
 }
 
 #pragma mark- action
-- (void)_takePhotoBtnAction
-{
-    if(_delegate && [_delegate respondsToSelector:@selector(cameraBottomBarShouldCapture:)]){
-        [_delegate cameraBottomBarShouldCapture:self];
-    }
-}
 
 #pragma mark- public method
 - (void)rotateUIWithDegress:(CGFloat )degress
                   animation:(BOOL)animation
 {
-    NSTimeInterval animationDuration = animation ? 1.0 : 0.0;
-    self.takePhotoBtn.transform = CGAffineTransformIdentity;
+    NSTimeInterval animationDuration = animation ? 0.25 : 0.0;
     [UIView animateWithDuration:animationDuration animations:^{
         self.takePhotoBtn.transform = CGAffineTransformRotate(self.takePhotoBtn.transform, degress);
     }];
 }
+
+#pragma mark- HFTakePhotoButtonDelegate
+- (void)photoButtonTakePhoto:(HFTakePhotoButton *)photoButton
+{
+    if([self canSafeCallDelegateWithAction:@selector(cameraBottomBarShouldCapture:)]){
+        [_delegate cameraBottomBarShouldCapture:self];
+    }
+}
+
+- (void)photoButtonStartRecording:(HFTakePhotoButton *)photoButton
+{
+    if([self canSafeCallDelegateWithAction:@selector(cameraBottomBarShouldStartRecord:)]){
+        [_delegate cameraBottomBarShouldStartRecord:self];
+    }
+}
+
+- (void)photoButtonEndRecording:(HFTakePhotoButton *)photoButton
+{
+    if([self canSafeCallDelegateWithAction:@selector(cameraBottomBarShouldEndRecord:)]){
+        [_delegate cameraBottomBarShouldEndRecord:self];
+    }
+}
+
 
 #pragma mark- private method
 - (void)_configSubView
@@ -58,13 +75,20 @@
     _takePhotoBtn.frame = CGRectMake(0, 0, 60, 60);
 }
 
+- (BOOL)canSafeCallDelegateWithAction:(SEL)action
+{
+    if(_delegate && [_delegate respondsToSelector:action]){
+        return YES;
+    }
+    return NO;
+}
+
 #pragma mark- setter/getter
-- (UIButton *)takePhotoBtn
+- (HFTakePhotoButton *)takePhotoBtn
 {
     if(!_takePhotoBtn){
-        _takePhotoBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_takePhotoBtn setTitle:@"拍照" forState:UIControlStateNormal];
-        [_takePhotoBtn addTarget:self action:@selector(_takePhotoBtnAction) forControlEvents:UIControlEventTouchUpInside];
+        _takePhotoBtn = [HFTakePhotoButton new];
+        _takePhotoBtn.delegate = self;
     }
     return _takePhotoBtn;
 }
