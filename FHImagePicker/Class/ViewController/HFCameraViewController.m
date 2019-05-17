@@ -15,7 +15,7 @@
 #import "HFDeviceOrientationMonitor.h"
 
 
-@interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,HFCameraBottomBarDelegate,AVCapturePhotoCaptureDelegate>
+@interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,HFCameraBottomBarDelegate,AVCapturePhotoCaptureDelegate,HFCameraBottomBarDelegate>
 
 @property (nonatomic, strong) HFCameraPreview *preview;
 @property (nonatomic, strong) HFCameraBottomBar *bottomBar;
@@ -32,6 +32,8 @@
 
 @property (nonatomic, strong) HFDeviceOrientationMonitor *orientationMonitor;
 @property (nonatomic, assign) HFDeviceOrientation deviceOrient;
+///应该中断一下，用在旋转摄像头和其他暂时没有考虑到的情况，不写入照片中
+@property (nonatomic, assign) BOOL shouldInterrupt;
 @end
 
 @implementation HFCameraViewController
@@ -166,8 +168,20 @@
         return;
     }
     
+#warning should crop image to the size you want
     NSData *imageData = [AVCapturePhotoOutput JPEGPhotoDataRepresentationForJPEGSampleBuffer:photoSampleBuffer previewPhotoSampleBuffer:previewPhotoSampleBuffer];
     UIImageWriteToSavedPhotosAlbum([UIImage imageWithData:imageData], nil, nil, nil);
+}
+
+#pragma mark- HFCameraBottomBarDelegate
+- (void)cameraBottomBarShouldStartRecord:(HFCameraBottomBar *)bottomBar
+{
+    //每次开始的时候都需要先创建一个新的assetwrite
+}
+
+- (void)cameraBottomBarShouldEndRecord:(HFCameraBottomBar *)bottomBar
+{
+    
 }
 
 #pragma mark- HFCameraBottomBarDelegate

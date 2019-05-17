@@ -16,6 +16,19 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)cameraBottomBarShouldCapture:(HFCameraBottomBar *)bottomBar;
 
+///开始摄影
+- (void)cameraBottomBarShouldStartRecord:(HFCameraBottomBar *)bottomBar;
+
+///暂停拍摄
+- (void)cameraBottomBarShouldPauseRecord:(HFCameraBottomBar *)bottomBar;
+
+///继续拍摄
+- (void)cameraBottomBarShouldResumeRecord:(HFCameraBottomBar *)bottomBar;
+
+///结束拍摄
+- (void)cameraBottomBarShouldEndRecord:(HFCameraBottomBar *)bottomBar;
+
+
 @end
 
 @interface HFCameraBottomBar : UIView

@@ -21,6 +21,8 @@
 		7A76857522780F3F00B2BDD4 /* HFCameraPreview.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A76857422780F3F00B2BDD4 /* HFCameraPreview.m */; };
 		7A7685792278179800B2BDD4 /* HFCameraViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A7685782278179800B2BDD4 /* HFCameraViewController.m */; };
 		7A76857C227E92F300B2BDD4 /* HFCameraBottomBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A76857B227E92F300B2BDD4 /* HFCameraBottomBar.m */; };
+		7A873F94228EAFB70014EB45 /* HFTakePhotoButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A873F93228EAFB70014EB45 /* HFTakePhotoButton.m */; };
+		7A873F97228EBAAD0014EB45 /* HFMediaWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 7A873F96228EBAAD0014EB45 /* HFMediaWriter.m */; };
 		7AF339D222816F0D009C8606 /* HFDeviceOrientationMonitor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7AF339D122816F0D009C8606 /* HFDeviceOrientationMonitor.m */; };
 /* End PBXBuildFile section */
 
@@ -53,6 +55,10 @@
 		7A7685782278179800B2BDD4 /* HFCameraViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFCameraViewController.m; sourceTree = "<group>"; };
 		7A76857A227E92F300B2BDD4 /* HFCameraBottomBar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HFCameraBottomBar.h; sourceTree = "<group>"; };
 		7A76857B227E92F300B2BDD4 /* HFCameraBottomBar.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFCameraBottomBar.m; sourceTree = "<group>"; };
+		7A873F92228EAFB70014EB45 /* HFTakePhotoButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HFTakePhotoButton.h; sourceTree = "<group>"; };
+		7A873F93228EAFB70014EB45 /* HFTakePhotoButton.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFTakePhotoButton.m; sourceTree = "<group>"; };
+		7A873F95228EBAAD0014EB45 /* HFMediaWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HFMediaWriter.h; sourceTree = "<group>"; };
+		7A873F96228EBAAD0014EB45 /* HFMediaWriter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFMediaWriter.m; sourceTree = "<group>"; };
 		7AF339D022816F0D009C8606 /* HFDeviceOrientationMonitor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HFDeviceOrientationMonitor.h; sourceTree = "<group>"; };
 		7AF339D122816F0D009C8606 /* HFDeviceOrientationMonitor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HFDeviceOrientationMonitor.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -147,6 +153,8 @@
 				7A76857422780F3F00B2BDD4 /* HFCameraPreview.m */,
 				7A76857A227E92F300B2BDD4 /* HFCameraBottomBar.h */,
 				7A76857B227E92F300B2BDD4 /* HFCameraBottomBar.m */,
+				7A873F92228EAFB70014EB45 /* HFTakePhotoButton.h */,
+				7A873F93228EAFB70014EB45 /* HFTakePhotoButton.m */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -156,6 +164,8 @@
 			children = (
 				7AF339D022816F0D009C8606 /* HFDeviceOrientationMonitor.h */,
 				7AF339D122816F0D009C8606 /* HFDeviceOrientationMonitor.m */,
+				7A873F95228EBAAD0014EB45 /* HFMediaWriter.h */,
+				7A873F96228EBAAD0014EB45 /* HFMediaWriter.m */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -237,11 +247,13 @@
 				7A2B44C421E8852D0065EE1E /* ViewController.m in Sources */,
 				7A2B44CF21E885360065EE1E /* main.m in Sources */,
 				7A76857C227E92F300B2BDD4 /* HFCameraBottomBar.m in Sources */,
+				7A873F94228EAFB70014EB45 /* HFTakePhotoButton.m in Sources */,
 				7A7685792278179800B2BDD4 /* HFCameraViewController.m in Sources */,
 				7A2B44DD21E88BC00065EE1E /* HFAlbumListViewController.m in Sources */,
 				7A2B44C121E8852D0065EE1E /* AppDelegate.m in Sources */,
 				7A2B44E221E891ED0065EE1E /* FHTableViewDataSource.m in Sources */,
 				7A76857522780F3F00B2BDD4 /* HFCameraPreview.m in Sources */,
+				7A873F97228EBAAD0014EB45 /* HFMediaWriter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
