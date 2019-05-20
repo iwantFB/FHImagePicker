@@ -23,7 +23,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) CMTime audioTimestamp;
 @property (nonatomic, readonly) CMTime videoTimestamp;
 
+@property (nonatomic, copy, readonly) NSURL *outputURL;
 
+///must set outputURL
+-(instancetype) init __attribute__((unavailable("init not available, call initWithOutputURL instead")));
+
+///每次使用完毕后需要销毁之后重新创建
 - (instancetype)initWithOutputURL:(NSURL *)outputURL;
 
 - (BOOL)setupAudioWithSettings:(NSDictionary *)audioSettings;

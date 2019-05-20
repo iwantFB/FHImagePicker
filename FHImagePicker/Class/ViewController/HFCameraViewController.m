@@ -11,11 +11,21 @@
 #import "HFCameraPreview.h"
 #import "HFCameraBottomBar.h"
 
+#import <Photos/Photos.h>
 #import "HFCameraSetting.h"
 #import "HFDeviceOrientationMonitor.h"
+#import "HFMediaWriter.h"
+#import "HFFileManager.h"
+
+typedef NS_ENUM(NSInteger, HFCameraStatus) {
+    HFCameraStatusWait,
+    HFCameraStatusShooting,
+    HFCameraStatusPause,
+    HFCameraStatusEnd
+};
 
 
-@interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,HFCameraBottomBarDelegate,AVCapturePhotoCaptureDelegate,HFCameraBottomBarDelegate>
+@interface HFCameraViewController ()<AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,HFCameraBottomBarDelegate,AVCapturePhotoCaptureDelegate>
 
 @property (nonatomic, strong) HFCameraPreview *preview;
 @property (nonatomic, strong) HFCameraBottomBar *bottomBar;
@@ -23,9 +33,11 @@
 
 @property (nonatomic, strong) AVCaptureSession *session;
 @property (nonatomic, strong) AVCaptureDevice *device;
+@property (nonatomic, strong) AVCaptureDeviceInput *audioInput;
 @property (nonatomic, strong) AVCaptureDeviceInput *backCameraDeviceInput;
 @property (nonatomic, strong) AVCaptureDeviceInput *frontCameraDeviceInput;
 @property (nonatomic, strong) AVCaptureVideoDataOutput *cameraOutput;
+@property (nonatomic, strong) AVCaptureAudioDataOutput *audioOutput;
 @property (nonatomic, strong) AVCapturePhotoOutput *capturePhotoOutput;
 
 @property (nonatomic, strong) dispatch_queue_t videoQueue;
@@ -33,7 +45,9 @@
 @property (nonatomic, strong) HFDeviceOrientationMonitor *orientationMonitor;
 @property (nonatomic, assign) HFDeviceOrientation deviceOrient;
 ///应该中断一下，用在旋转摄像头和其他暂时没有考虑到的情况，不写入照片中
-@property (nonatomic, assign) BOOL shouldInterrupt;
+@property (nonatomic, assign) HFCameraStatus cameraStatus;
+
+@property (nonatomic, strong) HFMediaWriter *mediaWriter;
 @end
 
 @implementation HFCameraViewController
@@ -44,6 +58,7 @@
     [self _initConfig];
     [self _configSubView];
     [self _setupCamera];
+    [self _setupMicphone];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -133,6 +148,18 @@
     }
 }
 
+- (void)_setupMicphone
+{
+    if([self.session canAddInput:self.audioInput]){
+        [self.session addInput:self.audioInput];
+    }
+    
+    [self.audioOutput setSampleBufferDelegate:self queue:self.videoQueue];
+    if([self.session canAddOutput:self.audioOutput]){
+        [self.session addOutput:self.audioOutput];
+    }
+}
+
 - (void)rotateDeviceUIWithTargetOrient:(HFDeviceOrientation)orientation
 {
     CGFloat degress = 0;
@@ -154,10 +181,32 @@
     [_bottomBar rotateUIWithDegress:degress animation:YES];
 }
 
+- (void)_configWriter
+{
+    if(_mediaWriter)_mediaWriter = nil;
+    [_orientationMonitor endMonitor];
+    [_cameraOutput connectionWithMediaType:AVMediaTypeVideo];
+    
+    
+    [self.mediaWriter setupAudioWithSettings:nil];
+    [self.mediaWriter setupVideoWithSettings:nil withAdditional:nil];
+}
+
 #pragma mark- AVCaptureDataOutputSampleBufferDelegate
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
+    if(_cameraStatus != HFCameraStatusShooting){
+        return;
+    }
+    BOOL isVideo = _cameraOutput == output;
+    BOOL isAudio = _audioOutput == output;
+    if(isVideo){
+        [_mediaWriter writeSampleBuffer:sampleBuffer withMediaTypeVideo:YES];
+    }
     
+    if(isAudio){
+        [_mediaWriter writeSampleBuffer:sampleBuffer withMediaTypeVideo:NO];
+    }
 }
 
 #pragma mark- AVCapturePhotoCaptureDelegate
@@ -177,14 +226,37 @@
 - (void)cameraBottomBarShouldStartRecord:(HFCameraBottomBar *)bottomBar
 {
     //每次开始的时候都需要先创建一个新的assetwrite
+    [self _configWriter];
+    _cameraStatus = HFCameraStatusShooting;
 }
 
 - (void)cameraBottomBarShouldEndRecord:(HFCameraBottomBar *)bottomBar
 {
+    _cameraStatus = HFCameraStatusEnd;
     
+    WS(weakSelf)
+    void ( ^finishHandler)(void) = ^(){
+        NSURL *fileUrl = weakSelf.mediaWriter.outputURL;
+        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+            
+            [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:fileUrl];
+        } completionHandler:^(BOOL success, NSError * _Nullable error1) {
+            if (success) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Video Saved!" message:@"Saved to the camera roll." preferredStyle:UIAlertControllerStyleAlert];
+                    UIAlertAction *ok = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+                    [alertController addAction:ok];
+                    [weakSelf presentViewController:alertController animated:YES completion:nil];
+                });
+            } else if (error1) {
+                NSLog(@"error is  %@", error1);
+            }
+        }];
+    };
+    
+    [_mediaWriter finishWritingWithCompletionHandler:finishHandler];
 }
 
-#pragma mark- HFCameraBottomBarDelegate
 - (void)cameraBottomBarShouldCapture:(HFCameraBottomBar *)bottomBar
 {
     AVCapturePhotoSettings *setting = [AVCapturePhotoSettings photoSettings];
@@ -245,6 +317,16 @@
     return _frontCameraDeviceInput;
 }
 
+- (AVCaptureDeviceInput *)audioInput
+{
+    if(!_audioInput){
+        NSError *audioError;
+        AVCaptureDevice *audioDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
+        _audioInput = [[AVCaptureDeviceInput alloc] initWithDevice:audioDevice error:&audioError];
+    }
+    return _audioInput;
+}
+
 - (AVCaptureVideoDataOutput *)cameraOutput
 {
     if(!_cameraOutput){
@@ -260,6 +342,14 @@
         _capturePhotoOutput = [AVCapturePhotoOutput new];
     }
     return _capturePhotoOutput;
+}
+
+- (AVCaptureAudioDataOutput *)audioOutput
+{
+    if(!_audioOutput){
+        _audioOutput = [[AVCaptureAudioDataOutput alloc] init];
+    }
+    return _audioOutput;
 }
 
 -(dispatch_queue_t)videoQueue
@@ -278,5 +368,13 @@
     return _orientationMonitor;
 }
 
+-(HFMediaWriter *)mediaWriter
+{
+    if(!_mediaWriter){
+        NSURL *fileURL = [NSURL fileURLWithPath:[HFFileManager avaliableFilePathInCacheForDirName:@"MineVideo" fileType:@"mp4"]];
+        _mediaWriter = [[HFMediaWriter alloc] initWithOutputURL:fileURL];
+    }
+    return _mediaWriter;
+}
 
 @end
