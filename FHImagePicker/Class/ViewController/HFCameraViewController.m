@@ -69,10 +69,10 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
     [self.orientationMonitor beginMonitorWithChange:^(HFDeviceOrientation orientation) {
         //如果设备朝向和检测到的朝向一致的时候无需操作
         if(weakSelf.deviceOrient == orientation || orientation > 4)return;
-        NSLog(@"朝向%ld",orientation);
         [weakSelf rotateDeviceUIWithTargetOrient:orientation];
         weakSelf.deviceOrient = orientation;
         AVCaptureConnection *connection = [weakSelf.capturePhotoOutput connectionWithMediaType:AVMediaTypeVideo];
+        AVCaptureConnection *videoConnection = [weakSelf.cameraOutput connectionWithMediaType:AVMediaTypeVideo];
         if([connection isVideoOrientationSupported]){
             AVCaptureVideoOrientation videoOrientation = AVCaptureVideoOrientationPortrait;
             switch (orientation) {
@@ -90,6 +90,10 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
                     break;
             }
             [connection setVideoOrientation:videoOrientation];
+            if([videoConnection isVideoOrientationSupported]){
+                NSLog(@"视频设置的方向为%ld",(long)videoOrientation);
+                videoConnection.videoOrientation = videoOrientation;
+            }
         }
     }];
     [self.session startRunning];

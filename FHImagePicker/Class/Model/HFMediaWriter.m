@@ -7,6 +7,7 @@
 //
 
 #import "HFMediaWriter.h"
+#import <UIKit/UIKit.h>
 #import <MobileCoreServices/UTCoreTypes.h>
 
 @interface HFMediaWriter ()
@@ -25,9 +26,14 @@
 #pragma mark- public method
 - (instancetype)initWithOutputURL:(NSURL *)outputURL
 {
+    return [self initWithOutputURL:outputURL mediaType:AVFileTypeMPEG4];
+}
+
+- (instancetype)initWithOutputURL:(NSURL *)outputURL mediaType:(AVFileType)fileType
+{
     if(self = [super init]){
         NSError *error = nil;
-        _assetWriter = [AVAssetWriter assetWriterWithURL:outputURL fileType:AVFileTypeMPEG4 error:&error];
+        _assetWriter = [AVAssetWriter assetWriterWithURL:outputURL fileType:fileType error:&error];
         if (error) {
             _assetWriter = nil;
             return nil;
@@ -48,6 +54,14 @@
 
 #pragma mark- public method
 - (BOOL)setupAudioWithSettings:(NSDictionary *)audioSettings{
+    //对于音频文件必须要指定 AVFormatIDKey ，AVNumberOfChannelsKey ，AVSampleRateKey 三个值
+    if(!audioSettings){
+        audioSettings = @{ AVEncoderBitRatePerChannelKey : @(28000),
+                           AVFormatIDKey : @(kAudioFormatMPEG4AAC),
+                           AVNumberOfChannelsKey : @(1),
+                           AVSampleRateKey : @(22050)
+                           };
+    }
     if (!_assetWriterAudioInput && [_assetWriter canApplyOutputSettings:audioSettings forMediaType:AVMediaTypeAudio]) {
         
         _assetWriterAudioInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeAudio outputSettings:audioSettings];
@@ -75,6 +89,16 @@
 }
 
 - (BOOL)setupVideoWithSettings:(NSDictionary *)videoSettings withAdditional:(NSDictionary *)additional{
+    
+    //对于视频文件，必须要指定AVVideoCodecKey AVVideoWidthKey AVVideoHeightKey三个的值，AVVideoCodecKey在iOS设备上支持的值有限
+    if(!videoSettings){
+        videoSettings = @{
+                          AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill,
+                          AVVideoCodecKey:AVVideoCodecH264,
+                          AVVideoWidthKey:@(SCREEN_WIDTH*2),
+                          AVVideoHeightKey:@(SCREEN_HEIGHT*2)
+                          };
+    }
     if (!_assetWriterVideoInput && [_assetWriter canApplyOutputSettings:videoSettings forMediaType:AVMediaTypeVideo]) {
         
         _assetWriterVideoInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeVideo outputSettings:videoSettings];
@@ -85,16 +109,6 @@
         if (_assetWriterVideoInput && [_assetWriter canAddInput:_assetWriterVideoInput]) {
             [_assetWriter addInput:_assetWriterVideoInput];
             
-#if !defined(NDEBUG) && LOG_WRITER
-            NSDictionary *videoCompressionProperties = videoSettings[AVVideoCompressionPropertiesKey];
-            if (videoCompressionProperties) {
-                NSLog(@"setup video with compression settings bps (%f) frameInterval (%ld)",
-                     [videoCompressionProperties[AVVideoAverageBitRateKey] floatValue],
-                     (long)[videoCompressionProperties[AVVideoMaxKeyFrameIntervalKey] integerValue]);
-            } else {
-                NSLog(@"setup video");
-            }
-#endif
             
         } else {
             NSLog(@"couldn't add asset writer video input");
@@ -112,6 +126,7 @@
 
 - (void)writeSampleBuffer:(CMSampleBufferRef)sampleBuffer withMediaTypeVideo:(BOOL)video{
     if (!CMSampleBufferDataIsReady(sampleBuffer)) {
+        NSLog(@"buffer not ready");
         return;
     }
     
@@ -126,7 +141,6 @@
             NSLog(@"error when starting to write (%@)", [_assetWriter error]);
             return;
         }
-        
     }
     
     // check for completion state
@@ -161,9 +175,6 @@
                 } else {
                     NSLog(@"writer error appending video (%@)", _assetWriter.error);
                 }
-            }else
-            {
-                NSLog(@"not ready for video %@ %@",_assetWriterAudioInput,_assetWriter);
             }
         } else {
             if (_assetWriterAudioInput.readyForMoreMediaData) {
@@ -172,9 +183,6 @@
                 } else {
                     NSLog(@"writer error appending audio (%@)", _assetWriter.error);
                 }
-            }else
-            {
-                NSLog(@"not ready for audio %@ %@",_assetWriterAudioInput,_assetWriter);
             }
         }
     }
