@@ -12,6 +12,8 @@
 @interface HFCameraBottomBar()<HFTakePhotoButtonDelegate>
 
 @property (nonatomic, strong) HFTakePhotoButton *takePhotoBtn;
+@property (nonatomic, strong) UIButton *deleteBtn;
+@property (nonatomic, strong) UIButton *doneBtn;
 
 @end
 
@@ -31,6 +33,15 @@
 }
 
 #pragma mark- action
+- (void)_deleteBtnAction
+{
+    
+}
+
+- (void)_doneBtnAction
+{
+    
+}
 
 #pragma mark- public method
 - (void)rotateUIWithDegress:(CGFloat )degress
@@ -40,6 +51,17 @@
     [UIView animateWithDuration:animationDuration animations:^{
         self.takePhotoBtn.transform = CGAffineTransformRotate(self.takePhotoBtn.transform, degress);
     }];
+}
+
+- (void)originUI{
+    _doneBtn.hidden = YES;
+    _deleteBtn.hidden = YES;
+}
+
+- (void)beginRecordingUI
+{
+    _doneBtn.hidden = NO;
+    _deleteBtn.hidden = NO;
 }
 
 #pragma mark- HFTakePhotoButtonDelegate
@@ -71,8 +93,19 @@
     self.alpha = 0.5;
     self.backgroundColor = [UIColor blackColor];
     
+    [self addSubview:self.deleteBtn];
     [self addSubview:self.takePhotoBtn];
-    _takePhotoBtn.frame = CGRectMake(0, 0, 60, 60);
+    [self addSubview:self.doneBtn];
+    
+    CGFloat selfWidth = CGRectGetWidth(self.bounds);
+    CGFloat selfHeight = CGRectGetHeight(self.bounds);
+    CGFloat btnWidthHeight = 60;
+    CGFloat btn_Y = (selfHeight - btnWidthHeight)/2.0;
+    
+    _deleteBtn.frame = CGRectMake(15, btn_Y, btnWidthHeight, btnWidthHeight);
+    _takePhotoBtn.frame = CGRectMake((selfWidth - btnWidthHeight)/2.0, btn_Y, btnWidthHeight, btnWidthHeight);
+    _doneBtn.frame = CGRectMake(selfWidth - 15 - btnWidthHeight, btn_Y, btnWidthHeight, btnWidthHeight);
+    
 }
 
 - (BOOL)canSafeCallDelegateWithAction:(SEL)action
@@ -83,6 +116,16 @@
     return NO;
 }
 
+- (UIButton *)buttonForTitle:(NSString *)title target:(id)target action:(SEL)action
+{
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [btn setTitle:title forState:UIControlStateNormal];
+    if([target respondsToSelector:action]){
+        [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
+    }
+    return btn;
+}
+
 #pragma mark- setter/getter
 - (HFTakePhotoButton *)takePhotoBtn
 {
@@ -91,6 +134,22 @@
         _takePhotoBtn.delegate = self;
     }
     return _takePhotoBtn;
+}
+
+- (UIButton *)deleteBtn
+{
+    if(!_deleteBtn){
+        _deleteBtn = [self buttonForTitle:@"删除" target:self action:@selector(_deleteBtnAction)];
+    }
+    return _deleteBtn;
+}
+
+- (UIButton *)doneBtn
+{
+    if(!_doneBtn){
+        _doneBtn = [self buttonForTitle:@"完成" target:self action:@selector(_doneBtnAction)];
+    }
+    return _doneBtn;
 }
 
 @end

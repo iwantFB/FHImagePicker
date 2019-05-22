@@ -48,9 +48,16 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
 @property (nonatomic, assign) HFCameraStatus cameraStatus;
 
 @property (nonatomic, strong) HFMediaWriter *mediaWriter;
+
+///暂停的时间节点，用来做断点回删
+@property (nonatomic, strong) NSArray *pauseTimeArr;
 @end
 
 @implementation HFCameraViewController
+{
+    CMTime startTime;
+    
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -72,29 +79,14 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
         [weakSelf rotateDeviceUIWithTargetOrient:orientation];
         weakSelf.deviceOrient = orientation;
         AVCaptureConnection *connection = [weakSelf.capturePhotoOutput connectionWithMediaType:AVMediaTypeVideo];
-        AVCaptureConnection *videoConnection = [weakSelf.cameraOutput connectionWithMediaType:AVMediaTypeVideo];
+        
+        AVCaptureVideoOrientation videoOrientation = [self deviceOrientToAVVideoOrient:orientation];
+        
         if([connection isVideoOrientationSupported]){
-            AVCaptureVideoOrientation videoOrientation = AVCaptureVideoOrientationPortrait;
-            switch (orientation) {
-                case HFDeviceOrientationLandscapeLeft:
-                    videoOrientation = AVCaptureVideoOrientationLandscapeRight;
-                    break;
-                case HFDeviceOrientationLandscapeRight:
-                    videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
-                    break;
-                    case HFDeviceOrientationPortraitUpsideDown:
-                    videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
-                    break;
-                default:
-                    videoOrientation = AVCaptureVideoOrientationPortrait;
-                    break;
-            }
             [connection setVideoOrientation:videoOrientation];
-            if([videoConnection isVideoOrientationSupported]){
-                NSLog(@"视频设置的方向为%ld",(long)videoOrientation);
-                videoConnection.videoOrientation = videoOrientation;
-            }
         }
+        
+        
     }];
     [self.session startRunning];
 }
@@ -125,6 +117,9 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
     
     [self.view addSubview:self.bottomBar];
     self.bottomBar.frame = self.cameraSetting.bottomBarRect;
+    
+    //初始化为基础UI
+    [self.bottomBar originUI];
 }
 
 //根据配置信息设置相机
@@ -189,7 +184,13 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
 {
     if(_mediaWriter)_mediaWriter = nil;
     [_orientationMonitor endMonitor];
-    [_cameraOutput connectionWithMediaType:AVMediaTypeVideo];
+    AVCaptureConnection *connection = [_cameraOutput connectionWithMediaType:AVMediaTypeVideo];
+    
+    AVCaptureVideoOrientation videoOrientation = [self deviceOrientToAVVideoOrient:_deviceOrient];
+    
+    if([connection isVideoOrientationSupported]){
+        [connection setVideoOrientation:videoOrientation];
+    }
     
     int videoWidth = _cameraSetting.videoSize.width;
     int videoHeight = _cameraSetting.videoSize.height;
@@ -200,7 +201,27 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
                                    AVVideoHeightKey: @(videoHeight)
                                    };
     [self.mediaWriter setupAudioWithSettings:nil];
-    [self.mediaWriter setupVideoWithSettings:videoSetting withAdditional:nil];
+    [self.mediaWriter setupVideoWithSettings:videoSetting withAdditional:@{}];
+}
+
+- (AVCaptureVideoOrientation)deviceOrientToAVVideoOrient:(HFDeviceOrientation)deviceOrient
+{
+    AVCaptureVideoOrientation videoOrientation = AVCaptureVideoOrientationPortrait;
+    switch (deviceOrient) {
+        case HFDeviceOrientationLandscapeLeft:
+            videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+            break;
+        case HFDeviceOrientationLandscapeRight:
+            videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+            break;
+        case HFDeviceOrientationPortraitUpsideDown:
+            videoOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
+            break;
+        default:
+            videoOrientation = AVCaptureVideoOrientationPortrait;
+            break;
+    }
+    return videoOrientation;
 }
 
 #pragma mark- AVCaptureDataOutputSampleBufferDelegate
@@ -294,7 +315,7 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
 -(HFCameraBottomBar *)bottomBar
 {
     if(!_bottomBar){
-        _bottomBar = [[HFCameraBottomBar alloc] init];
+        _bottomBar = [[HFCameraBottomBar alloc] initWithFrame:self.cameraSetting.bottomBarRect];
         _bottomBar.delegate = self;
     }
     return _bottomBar;
