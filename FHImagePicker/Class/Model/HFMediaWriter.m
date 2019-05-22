@@ -46,7 +46,6 @@
         
         _audioTimestamp = kCMTimeInvalid;
         _videoTimestamp = kCMTimeInvalid;
-        NSLog(@"创建自己");
     }
     
     return self;
@@ -83,7 +82,6 @@
         
         _assetWriterAudioInput = nil;
         NSLog(@"couldn't apply audio output settings");
-        
     }
     return NO;
 }
@@ -91,14 +89,6 @@
 - (BOOL)setupVideoWithSettings:(NSDictionary *)videoSettings withAdditional:(NSDictionary *)additional{
     
     //对于视频文件，必须要指定AVVideoCodecKey AVVideoWidthKey AVVideoHeightKey三个的值，AVVideoCodecKey在iOS设备上支持的值有限
-    if(!videoSettings){
-        videoSettings = @{
-                          AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill,
-                          AVVideoCodecKey:AVVideoCodecH264,
-                          AVVideoWidthKey:@(SCREEN_WIDTH*2),
-                          AVVideoHeightKey:@(SCREEN_HEIGHT*2)
-                          };
-    }
     if (!_assetWriterVideoInput && [_assetWriter canApplyOutputSettings:videoSettings forMediaType:AVMediaTypeVideo]) {
         
         _assetWriterVideoInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeVideo outputSettings:videoSettings];
@@ -131,7 +121,7 @@
     }
     
     // setup the writer
-    if ( _assetWriter.status == AVAssetWriterStatusUnknown ) {
+    if ( _assetWriter.status == AVAssetWriterStatusUnknown) {
         
         if ([_assetWriter startWriting]) {
             CMTime timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);

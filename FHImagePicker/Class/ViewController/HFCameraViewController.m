@@ -191,9 +191,16 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
     [_orientationMonitor endMonitor];
     [_cameraOutput connectionWithMediaType:AVMediaTypeVideo];
     
-    
+    int videoWidth = _cameraSetting.videoSize.width;
+    int videoHeight = _cameraSetting.videoSize.height;
+    NSDictionary *videoSetting = @{
+                                   AVVideoScalingModeKey : AVVideoScalingModeResizeAspectFill,
+                                   AVVideoCodecKey : AVVideoCodecH264,
+                                   AVVideoWidthKey : @(videoWidth),
+                                   AVVideoHeightKey: @(videoHeight)
+                                   };
     [self.mediaWriter setupAudioWithSettings:nil];
-    [self.mediaWriter setupVideoWithSettings:nil withAdditional:nil];
+    [self.mediaWriter setupVideoWithSettings:videoSetting withAdditional:nil];
 }
 
 #pragma mark- AVCaptureDataOutputSampleBufferDelegate
