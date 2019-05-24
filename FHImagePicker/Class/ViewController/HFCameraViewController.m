@@ -248,7 +248,6 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
             CFRelease(sampleBuffer);
             return;
         }
-        
         if(CMTIME_IS_VALID(currentTimeStamp) && CMTIME_IS_VALID(_mediaWriter.audioTimestamp)){
             if(CMTIME_IS_VALID(_timeOffset)){
                 currentTimeStamp = CMTimeSubtract(currentTimeStamp, _timeOffset);
