@@ -39,7 +39,7 @@
 
 - (void)endMonitor
 {
-    [self.motionManager stopDeviceMotionUpdates];
+    [self.motionManager stopAccelerometerUpdates];
 }
 
 #pragma mark- private method

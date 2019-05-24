@@ -39,6 +39,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)rotateUIWithDegress:(CGFloat )degress
                   animation:(BOOL)animation;
 
+
+- (void)originUI;
+- (void)beginRecordingUI;
+
 @end
 
 NS_ASSUME_NONNULL_END

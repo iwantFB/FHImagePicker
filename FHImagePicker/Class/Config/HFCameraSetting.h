@@ -36,7 +36,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) CGRect cameraRect;
 @property (nonatomic, assign) CGRect bottomBarRect;
 @property(assign) HFCameraVideoGravity cameraGravity;
+
 @property (copy, readonly) NSString *videoGravity;
+@property (nonatomic, assign, readonly) CGSize videoSize;
 
 + (instancetype)defalutConfig;
 

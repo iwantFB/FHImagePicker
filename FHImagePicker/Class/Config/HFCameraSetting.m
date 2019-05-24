@@ -17,7 +17,7 @@
     HFCameraSetting *setting = [[HFCameraSetting alloc] init];
     setting.cameraDevice = HFCameraDeviceBack;
     setting.cameraMode = HFCameraModePhoto;
-    setting.cameraRect = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - NavigationBar_Height);
+    setting.cameraRect = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_WIDTH);
     setting.cameraGravity = HFCameraVideoGravityAspectFill;
     setting.bottomBarRect = CGRectMake(0, SCREEN_HEIGHT - NavigationBar_Height - bottomBarHeight, SCREEN_WIDTH, bottomBarHeight);
     return setting;
@@ -33,12 +33,19 @@
             break;
         case HFCameraVideoGravityAspectFill:
             currentVideoGravity = AVLayerVideoGravityResizeAspectFill;
+            break;
         default:
             currentVideoGravity = AVLayerVideoGravityResize;
             break;
     }
     
     return currentVideoGravity;
+}
+
+#pragma mark- setter/getter
+- (CGSize)videoSize
+{
+    return CGSizeMake(CGRectGetWidth(_cameraRect) * 2, CGRectGetHeight(_cameraRect) * 2);
 }
 
 @end
