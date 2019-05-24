@@ -20,12 +20,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)photoButtonTakePhoto:(HFTakePhotoButton *)photoButton;
 
 ///开始录像
-- (void)photoButtonStartRecording:(HFTakePhotoButton *)photoButton;
+- (void)photoButtonTouchDown:(HFTakePhotoButton *)photoButton;
 
 - (void)photoButton:(HFTakePhotoButton *)photoButton movedForZoom:(CGFloat)scale;
 
 ///结束录像
-- (void)photoButtonEndRecording:(HFTakePhotoButton *)photoButton;
+- (void)photoButtonTouchUp:(HFTakePhotoButton *)photoButton;
 
 /// 录像被打断
 - (void)photoButtonCancelRecording:(HFTakePhotoButton *)photoButton;

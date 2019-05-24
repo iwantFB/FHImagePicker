@@ -16,6 +16,7 @@
 #import "HFDeviceOrientationMonitor.h"
 #import "HFMediaWriter.h"
 #import "HFFileManager.h"
+#import "HFWriterUtilities.h"
 
 typedef NS_ENUM(NSInteger, HFCameraStatus) {
     HFCameraStatusWait,
@@ -46,6 +47,8 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
 @property (nonatomic, assign) HFDeviceOrientation deviceOrient;
 ///应该中断一下，用在旋转摄像头和其他暂时没有考虑到的情况，不写入照片中
 @property (nonatomic, assign) HFCameraStatus cameraStatus;
+//是否中断过
+@property (nonatomic, assign) BOOL isInterrupt;
 
 @property (nonatomic, strong) HFMediaWriter *mediaWriter;
 
@@ -55,8 +58,9 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
 
 @implementation HFCameraViewController
 {
-    CMTime startTime;
-    
+    //用以计算最大拍摄时长
+    CMTime _startTime;
+    CMTime _timeOffset;
 }
 
 - (void)viewDidLoad {
@@ -230,15 +234,54 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
     if(_cameraStatus != HFCameraStatusShooting){
         return;
     }
+    
+    //需要对产生的sampleBuffer引用，不然会被提前释放
+    CFRetain(sampleBuffer);
     BOOL isVideo = _cameraOutput == output;
     BOOL isAudio = _audioOutput == output;
-    if(isVideo){
-        [_mediaWriter writeSampleBuffer:sampleBuffer withMediaTypeVideo:YES];
+
+    CMTime currentTimeStamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+
+    //中断过，则计算时间差
+    if(_isInterrupt){
+        if(isVideo){
+            CFRelease(sampleBuffer);
+            return;
+        }
+        if(CMTIME_IS_VALID(currentTimeStamp) && CMTIME_IS_VALID(_mediaWriter.audioTimestamp)){
+            if(CMTIME_IS_VALID(_timeOffset)){
+                currentTimeStamp = CMTimeSubtract(currentTimeStamp, _timeOffset);
+            }
+            CMTime offset = CMTimeSubtract(currentTimeStamp, _mediaWriter.audioTimestamp);
+            _timeOffset = CMTIME_IS_INVALID(_timeOffset) ? offset : CMTimeAdd(_timeOffset, offset);
+        }
+
+        _isInterrupt = NO;
     }
-    
-    if(isAudio){
-        [_mediaWriter writeSampleBuffer:sampleBuffer withMediaTypeVideo:NO];
+
+    CMSampleBufferRef resultBuffer = NULL;
+    if(CMTIME_IS_VALID(_timeOffset)){
+        resultBuffer = [HFWriterUtilities createOffsetSampleBufferWithSampleBuffer:sampleBuffer withTimeOffset:_timeOffset];
+    }else{
+        resultBuffer = sampleBuffer;
+        CFRetain(resultBuffer);
     }
+
+    if(resultBuffer && !_isInterrupt){
+
+        if(isVideo){
+            [_mediaWriter writeSampleBuffer:resultBuffer withMediaTypeVideo:YES];
+        }
+
+        if(isAudio){
+            [_mediaWriter writeSampleBuffer:resultBuffer withMediaTypeVideo:NO];
+        }
+    }
+    if(resultBuffer){
+        CFRelease(resultBuffer);
+    }
+
+    CFRelease(sampleBuffer);
 }
 
 #pragma mark- AVCapturePhotoCaptureDelegate
@@ -255,6 +298,12 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
 }
 
 #pragma mark- HFCameraBottomBarDelegate
+- (void)cameraBottomBarShouldCapture:(HFCameraBottomBar *)bottomBar
+{
+    AVCapturePhotoSettings *setting = [AVCapturePhotoSettings photoSettings];
+    [self.capturePhotoOutput capturePhotoWithSettings:setting delegate:self];
+}
+
 - (void)cameraBottomBarShouldStartRecord:(HFCameraBottomBar *)bottomBar
 {
     //每次开始的时候都需要先创建一个新的assetwrite
@@ -289,10 +338,16 @@ typedef NS_ENUM(NSInteger, HFCameraStatus) {
     [_mediaWriter finishWritingWithCompletionHandler:finishHandler];
 }
 
-- (void)cameraBottomBarShouldCapture:(HFCameraBottomBar *)bottomBar
+- (void)cameraBottomBarShouldPauseRecord:(HFCameraBottomBar *)bottomBar
 {
-    AVCapturePhotoSettings *setting = [AVCapturePhotoSettings photoSettings];
-    [self.capturePhotoOutput capturePhotoWithSettings:setting delegate:self];
+    _isInterrupt = YES;
+    _cameraStatus = HFCameraStatusPause;
+    [_bottomBar beginRecordingUI];
+}
+
+- (void)cameraBottomBarShouldResumeRecord:(HFCameraBottomBar *)bottomBar
+{
+    _cameraStatus = HFCameraStatusShooting;
 }
 
 #pragma mark- setter/getter

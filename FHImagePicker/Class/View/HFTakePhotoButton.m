@@ -92,8 +92,8 @@
         {
             [self startAnimation];
             [self videoAnimation];
-            if(_delegate && [_delegate respondsToSelector:@selector(photoButtonStartRecording:)]){
-                [_delegate photoButtonStartRecording:self];
+            if(_delegate && [_delegate respondsToSelector:@selector(photoButtonTouchDown:)]){
+                [_delegate photoButtonTouchDown:self];
             }
         }
             break;
@@ -101,8 +101,8 @@
         case UIGestureRecognizerStateFailed:
         case UIGestureRecognizerStateEnded:{
             [self endAnimation];
-            if(_delegate && [_delegate respondsToSelector:@selector(photoButtonEndRecording:)]){
-                [_delegate photoButtonEndRecording:self];
+            if(_delegate && [_delegate respondsToSelector:@selector(photoButtonTouchUp:)]){
+                [_delegate photoButtonTouchUp:self];
             }
             
         }

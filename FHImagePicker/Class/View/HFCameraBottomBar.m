@@ -15,6 +15,9 @@
 @property (nonatomic, strong) UIButton *deleteBtn;
 @property (nonatomic, strong) UIButton *doneBtn;
 
+///拍摄过视频
+@property (nonatomic, assign) BOOL recorded;
+
 @end
 
 @implementation HFCameraBottomBar
@@ -40,7 +43,10 @@
 
 - (void)_doneBtnAction
 {
-    
+    _recorded = NO;
+    if([self canSafeCallDelegateWithAction:@selector(cameraBottomBarShouldEndRecord:)]){
+        [_delegate cameraBottomBarShouldEndRecord:self];
+    }
 }
 
 #pragma mark- public method
@@ -72,17 +78,26 @@
     }
 }
 
-- (void)photoButtonStartRecording:(HFTakePhotoButton *)photoButton
+- (void)photoButtonTouchDown:(HFTakePhotoButton *)photoButton
 {
-    if([self canSafeCallDelegateWithAction:@selector(cameraBottomBarShouldStartRecord:)]){
-        [_delegate cameraBottomBarShouldStartRecord:self];
+    if(_recorded){
+        if([self canSafeCallDelegateWithAction:@selector(cameraBottomBarShouldResumeRecord:)]){
+            [_delegate cameraBottomBarShouldResumeRecord:self];
+        }
+    }else{
+        if([self canSafeCallDelegateWithAction:@selector(cameraBottomBarShouldStartRecord:)]){
+            [_delegate cameraBottomBarShouldStartRecord:self];
+            _recorded = YES;
+        }
+        
     }
+    
 }
 
-- (void)photoButtonEndRecording:(HFTakePhotoButton *)photoButton
+- (void)photoButtonTouchUp:(HFTakePhotoButton *)photoButton
 {
-    if([self canSafeCallDelegateWithAction:@selector(cameraBottomBarShouldEndRecord:)]){
-        [_delegate cameraBottomBarShouldEndRecord:self];
+    if([self canSafeCallDelegateWithAction:@selector(cameraBottomBarShouldPauseRecord:)]){
+        [_delegate cameraBottomBarShouldPauseRecord:self];
     }
 }
 
